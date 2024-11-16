@@ -3,7 +3,7 @@ services:
     name: apiBase
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install --prefer-binary -r requirements.txt"
     startCommand: "gunicorn app:app --bind 0.0.0.0:${PORT}"  # Ajustar si es necesario
     envVars:
       - key: PORT
