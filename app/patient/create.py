@@ -13,11 +13,12 @@ def create_patient():
         data = request.get_json()
         data['creation_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # Asociar el paciente con el `user_id` del usuario autenticado extraído del token
+        # Associate patient with the `user_id` from the authenticated token
         data['user_id'] = request.user_id
 
-        # Crear el registro en Firebase
-        result = firebase_db.post('/patients', data)
+        # Use user-specific path in Firebase to segregate patients by user
+        result = firebase_db.post(f'/patients/{data["user_id"]}', data)
+
         return jsonify({'message': 'Patient record created successfully', 'id': result['name']}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

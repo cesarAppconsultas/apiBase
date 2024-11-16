@@ -10,18 +10,21 @@ from app.utils.token_required import token_required
 @token_required
 def update_patient(id_patients):
     try:
-        # Obtener los datos enviados en el cuerpo de la solicitud
-        data = request.get_json()
+        # Obtener el user_id del token autenticado
+        user_id = request.user_id
 
-        # Verificar si el paciente existe antes de actualizar
-        patient = firebase_db.get(f'/patients/{id_patients}', None)
+        # Verificar si el paciente existe en el path específico del usuario autenticado
+        patient = firebase_db.get(f'/patients/{user_id}/{id_patients}', None)
         if not patient:
             return jsonify({'message': 'No patient found with the provided ID'}), 404
+
+        # Obtener los datos enviados en el cuerpo de la solicitud
+        data = request.get_json()
 
         # Actualizar solo los campos especificados en `data`
         data['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         for key, value in data.items():
-            firebase_db.put(f'/patients/{id_patients}', key, value)
+            firebase_db.put(f'/patients/{user_id}/{id_patients}', key, value)
 
         return jsonify({'message': 'Patient record updated successfully', 'id': id_patients}), 200
     except Exception as e:

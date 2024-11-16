@@ -8,15 +8,18 @@ from app.utils.token_required import token_required
 @token_required
 def get_patients():
     try:
-        result = firebase_db.get('/patients', None)
+        # Fetch patients only for the current authenticated user
+        result = firebase_db.get(f'/patients/{request.user_id}', None)
+
+        # Check if result exists and format as a list of patients
         if result:
             patients = []
             for patient_id, patient_data in result.items():
                 patient_data['id'] = patient_id
                 patients.append(patient_data)
-            return jsonify(patients)
+            return jsonify(patients), 200
         else:
-            return jsonify([])  # Returns an empty list if there are no patients
+            return jsonify([]), 200  # Returns an empty list if there are no patients
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
