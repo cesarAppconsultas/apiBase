@@ -24,30 +24,30 @@ def get_patients():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/patient/<string:idUser>', methods=['GET'])
+@app.route('/patient/<string:patient_id>', methods=['GET'])
 @token_required
-def by_id_patient(idUser):
+def by_id_patient(patient_id):
     try:
-        # Verificar que se ha recibido el id del usuario
-        if not idUser:
-            return jsonify({'error': 'The "patient" parameter is required in the URL'}), 400
+        # Get the authenticated user's ID from the token
+        authenticated_user_id = request.user_id
 
-        # Obtener todos los pacientes desde Firebase
-        patients = firebase_db.get('/patients', None)
+        # Fetch all patients associated with this user
+        patients = firebase_db.get(f'/patients/{authenticated_user_id}', None)
 
-        # Validar que hay pacientes en la base de datos
+        # Verify if patients exist for the authenticated user
         if not patients:
-            return jsonify({'message': 'No patients found in the database'}), 404
+            return jsonify({'message': 'No patients found for the authenticated user'}), 404
 
-        # Buscar el paciente por la clave específica
-        patient = patients.get(idUser)
+        # Search for the patient with the specified patient_id
+        patient_data = patients.get(patient_id)
 
-        # Verificar si el paciente fue encontrado
-        if patient:
-            patient_with_id = {'id': idUser, **patient}
+        # Check if the patient with the specified ID was found
+        if patient_data:
+            # Include the patient_id in the response data
+            patient_with_id = {'id': patient_id, **patient_data}
             return jsonify(patient_with_id), 200
         else:
-            return jsonify({'message': 'No patients found with the specified id'}), 404
+            return jsonify({'message': 'No patient found with the specified ID'}), 404
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
