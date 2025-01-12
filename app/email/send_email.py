@@ -3,50 +3,58 @@ from flask_mail import Mail, Message
 from flask_cors import CORS
 
 from app import app
-
 from app.utils.send_email import mail
 from datetime import datetime
 
+# Configuración para permitir múltiples orígenes
+CORS(app, resources={r"/email/*": {"origins": ["http://localhost:3002", "https://albun-app.web.app"]}}, supports_credentials=True)
 
-CORS(app, resources={r"/email/*": {"origins": "https://albun-app.web.app"}})
-
-@app.route('/email/send_email', methods=['POST'])
+@app.route('/email/send_email', methods=['POST', 'OPTIONS'])
 def send_email():
-    if request.method == 'POST':
+    # Manejar preflight requests (OPTIONS)
+    if request.method == 'OPTIONS':
         response = make_response()
-        response.headers["Access-Control-Allow-Origin"] = "http://localhost:3001"
+        response.headers["Access-Control-Allow-Origin"] = request.headers.get('Origin') or "*"
         response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-        recipient = request.json.get('recipient')
-        sender_name = request.json.get('sender_name')  # Nombre del usuario que envía
-        sender_phone = request.json.get('sender_phone')  # Teléfono del usuario que envía
-        subject = request.json.get('subject')
-        message = request.json.get('message')
-        additional_text = request.json.get('additional_text')
+        return response, 200
 
-        # Validar que los datos obligatorios estén presentes
-        if not recipient or not sender_name or not sender_phone:
-            return jsonify({'error': 'Missing required parameters: recipient, sender_name, or sender_phone'}), 400
+    # Manejo de solicitudes POST
+    response = make_response()
+    response.headers["Access-Control-Allow-Origin"] = request.headers.get('Origin') or "*"
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
 
-        # Personalizar el subject con el nombre y el teléfono
-        subject = f"Tienes una solicitud de consulta de {sender_name} ({sender_phone})"
+    recipient = request.json.get('recipient')
+    sender_name = request.json.get('sender_name')  # Nombre del usuario que envía
+    sender_phone = request.json.get('sender_phone')  # Teléfono del usuario que envía
+    subject = request.json.get('subject')
+    message = request.json.get('message')
+    additional_text = request.json.get('additional_text')
 
-        # Personalizar el message con fecha y hora
-        current_datetime = datetime.now().strftime("%d-%m-%Y %H:%M")
-        message = f"Tienes una solicitud de reserva el día de hoy, {current_datetime}.\n\n{message}"
+    # Validar que los datos obligatorios estén presentes
+    if not recipient or not sender_name or not sender_phone:
+        return jsonify({'error': 'Missing required parameters: recipient, sender_name, or sender_phone'}), 400
 
-        # Combinar el mensaje completo con texto adicional
-        complete_message = f"{message}\n\n{additional_text}"
+    # Personalizar el subject con el nombre y el teléfono
+    subject = f"Tienes una solicitud de consulta de {sender_name} ({sender_phone})"
 
-        # Crear un objeto Message para el correo con el "No responder"
-        sender_address = "consultasapp2023@gmail.com"
-        sender_full = f"No responder <{sender_address}>"
-        msg = Message(subject, sender=sender_full, recipients=[recipient])
-        msg.body = complete_message
+    # Personalizar el message con fecha y hora
+    current_datetime = datetime.now().strftime("%d-%m-%Y %H:%M")
+    message = f"Tienes una solicitud de reserva el día de hoy, {current_datetime}.\n\n{message}"
 
-        try:
-            # Enviar el correo
-            mail.send(msg)
-            return jsonify({'message': 'Email sent successfully'}), 200
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+    # Combinar el mensaje completo con texto adicional
+    complete_message = f"{message}\n\n{additional_text}"
+
+    # Crear un objeto Message para el correo con el "No responder"
+    sender_address = "consultasapp2023@gmail.com"
+    sender_full = f"No responder <{sender_address}>"
+    msg = Message(subject, sender=sender_full, recipients=[recipient])
+    msg.body = complete_message
+
+    try:
+        # Enviar el correo
+        mail.send(msg)
+        return jsonify({'message': 'Email sent successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
