@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_mail import Mail, Message
 
 from app import app
@@ -10,6 +10,10 @@ from datetime import datetime
 @app.route('/email/send_email', methods=['POST'])
 def send_email():
     if request.method == 'POST':
+        response = make_response()
+        response.headers["Access-Control-Allow-Origin"] = "http://localhost:3001"
+        response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
         recipient = request.json.get('recipient')
         sender_name = request.json.get('sender_name')  # Nombre del usuario que envía
         sender_phone = request.json.get('sender_phone')  # Teléfono del usuario que envía
