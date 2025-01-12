@@ -11,7 +11,6 @@ CORS(app, resources={r"/email/*": {"origins": ["http://localhost:3002", "https:/
 
 @app.route('/email/send_email', methods=['POST', 'OPTIONS'])
 def send_email():
-    # Manejar preflight requests (OPTIONS)
     if request.method == 'OPTIONS':
         response = make_response()
         response.headers["Access-Control-Allow-Origin"] = request.headers.get('Origin') or "*"
@@ -19,11 +18,6 @@ def send_email():
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
         return response, 200
 
-    # Manejo de solicitudes POST
-    response = make_response()
-    response.headers["Access-Control-Allow-Origin"] = request.headers.get('Origin') or "*"
-    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
 
     recipient = request.json.get('recipient')
     sender_name = request.json.get('sender_name')  # Nombre del usuario que envía
