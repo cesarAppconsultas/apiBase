@@ -59,3 +59,4 @@ uritemplate==4.1.1
 urllib3==2.0.6
 Werkzeug==2.2.3
 yarl==1.17.1
+flask-cors== 5.0.0
