@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify, make_response
 from flask_mail import Mail, Message
+from flask_cors import CORS
 
 from app import app
 
 from app.utils.send_email import mail
 from datetime import datetime
 
+
+CORS(app, resources={r"/email/*": {"origins": "https://albun-app.web.app"}})
 
 @app.route('/email/send_email', methods=['POST'])
 def send_email():
