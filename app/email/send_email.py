@@ -6,22 +6,28 @@ from app import app
 from app.utils.send_email import mail
 from datetime import datetime
 
-# Configuración para permitir múltiples orígenes
-CORS(app, resources={r"/email/*": {"origins": ["http://localhost:3002", "https://albun-app.web.app"]}}, supports_credentials=True)
+# Configuración global de CORS
+CORS(
+    app,
+    supports_credentials=True,  # Permitir cookies o credenciales
+    resources={r"/*": {"origins": "*"}},  # Permitir todos los orígenes
+)
 
 @app.route('/email/send_email', methods=['POST', 'OPTIONS'])
 def send_email():
+    # Manejo de solicitudes preflight (OPTIONS)
     if request.method == 'OPTIONS':
         response = make_response()
         response.headers["Access-Control-Allow-Origin"] = request.headers.get('Origin') or "*"
         response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
         return response, 200
 
-
+    # Manejo de solicitudes POST
     recipient = request.json.get('recipient')
-    sender_name = request.json.get('sender_name')  # Nombre del usuario que envía
-    sender_phone = request.json.get('sender_phone')  # Teléfono del usuario que envía
+    sender_name = request.json.get('sender_name')
+    sender_phone = request.json.get('sender_phone')
     subject = request.json.get('subject')
     message = request.json.get('message')
     additional_text = request.json.get('additional_text')
